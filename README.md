@@ -1,1 +1,1 @@
-# grailed-scrapper
+# grailed-scraper
