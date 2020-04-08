@@ -3,14 +3,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+import time
 
-url = 'https://www.grailed.com/shop/4rtigaaOuw'
+url = 'https://www.grailed.com/shop/rWwm5phlPw'
 driver = webdriver.Chrome('./chromedriver')
-
-delay = 10
 
 
 def load_grailed_url():
+    delay = 10
     driver.get(url)
     try:
         WebDriverWait(driver, delay).until(
@@ -26,6 +26,27 @@ def load_grailed_url():
         )
     except TimeoutException:
         print("No listings showed up after 10 seconds!")
+
+
+def scroll_to_end():
+    SCROLL_PAUSE_TIME = 10.0
+
+    # Get scroll height
+    last_height = driver.execute_script("return document.body.scrollHeight")
+
+    while True:
+        # Scroll down to bottom
+        driver.execute_script(
+            "window.scrollTo(0, document.body.scrollHeight);")
+
+        # Wait to load page
+        time.sleep(SCROLL_PAUSE_TIME)
+
+        # Calculate new scroll height and compare with last scroll height
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
 
 
 def extract_post_information():
@@ -75,6 +96,8 @@ def extract_post_information():
 
 
 load_grailed_url()
+time.sleep(20)
+scroll_to_end()
 extract_post_information()
 
 
