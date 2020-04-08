@@ -3,15 +3,32 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
+
 import pandas as pd
+import argparse
 import time
 
-url = 'https://www.grailed.com/shop/hEwMWVNWRg'
+
+url = 'https://www.grailed.com/'
 driver = webdriver.Chrome('./chromedriver')
+
+parser = argparse.ArgumentParser()
+parser.add_argument("search", help="Query to find listings on Grailed.com")
+args = parser.parse_args()
+
+search_term = args.search
+
+# driver.find/html/body/div[10]/div/div/a/svg
 
 
 def load_grailed_url():
+
     driver.get(url)
+
+    input_box = driver.find_element_by_id("globalheader_search")
+    input_box.send_keys(search_term)
+    input_box.send_keys(Keys.RETURN)
     # Error if search bar not found after 10 seconds
     try:
         WebDriverWait(driver, 10).until(
@@ -21,13 +38,13 @@ def load_grailed_url():
         print("Loading took too much time!")
 
     # Wait for feed-items to appear
-    try:
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located(
-                (By.CLASS_NAME, "listing-cover-photo"))
-        )
-    except TimeoutException:
-        print("No listings showed up after 10 seconds!")
+    # try:
+    #     WebDriverWait(driver, 10).until(
+    #         EC.presence_of_element_located(
+    #             (By.CLASS_NAME, "listing-cover-photo"))
+    #     )
+    # except TimeoutException:
+    #     print("No listings showed up after 10 seconds!")
 
 
 def scroll_to_end():
@@ -107,20 +124,21 @@ def extract_post_information():
     df.to_csv('listings.csv')
 
 
-def extract_image_url():
-    image_urls = []
-    count = 0
+# def extract_image_url():
+#     image_urls = []
+#     count = 0
 
-    listings = driver.find_elements_by_class_name("feed-item")
-    listings.reverse()
-    for listing in listings:
-        if len(listing.find_elements_by_class_name("lazyload-placeholder")) == 0:
-            image_url = listing.find_element_by_tag_name(
-                "img").get_attribute("src")
-            image_urls.append(image_url)
+#     listings = driver.find_elements_by_class_name("feed-item")
+#     listings.reverse()
+#     for listing in listings:
+#         if len(listing.find_elements_by_class_name("lazyload-placeholder")) == 0:
+#             image_url = listing.find_element_by_tag_name(
+#                 "img").get_attribute("src")
+#             image_urls.append(image_url)
 
 
 load_grailed_url()
+time.sleep(5)
 scroll_to_end()
 time.sleep(10)
 scroll_to_end()
@@ -128,4 +146,4 @@ scroll_to_end()
 extract_post_information()
 # extract_image_url()
 
-driver.close()
+# driver.close()
