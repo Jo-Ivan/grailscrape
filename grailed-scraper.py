@@ -3,6 +3,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+import pandas as pd
 import time
 
 url = 'https://www.grailed.com/shop/hEwMWVNWRg'
@@ -65,9 +66,9 @@ def extract_post_information():
         item = post.text.split('$')
 
         if len(item) == 3:
-            slashed_price = item[1]
+            new_price = item[1]
             old_price = item[2]
-            current_price = slashed_price
+            current_price = new_price
         else:
             regular_price = item[1]
             old_price = 'n/a'
@@ -99,9 +100,16 @@ def extract_post_information():
         print(
             f'brand: {item_brand}, name: {item_name}, size: {item_size}, date: {date}, staff pick?: {staff_pick}, current price: {current_price}, old price: {old_price}')
 
+    listing = {'brand': item_brands, 'name': item_names, 'size': item_sizes, 'date': dates,
+               'staff pick': is_staff_pick, 'old price': old_prices, 'current price': current_prices}
+    df = pd.DataFrame(listing)
+
+    df.to_csv('listings.csv')
+
 
 def extract_image_url():
     image_urls = []
+    count = 0
 
     listings = driver.find_elements_by_class_name("feed-item")
     listings.reverse()
@@ -118,6 +126,6 @@ time.sleep(10)
 scroll_to_end()
 
 extract_post_information()
-extract_image_url()
+# extract_image_url()
 
 driver.close()
