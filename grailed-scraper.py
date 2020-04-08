@@ -5,22 +5,23 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 import time
 
-url = 'https://www.grailed.com/shop/rWwm5phlPw'
+url = 'https://www.grailed.com/shop/hEwMWVNWRg'
 driver = webdriver.Chrome('./chromedriver')
 
 
 def load_grailed_url():
-    delay = 10
     driver.get(url)
+    # Error if search bar not found after 10 seconds
     try:
-        WebDriverWait(driver, delay).until(
+        WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "shop"))
         )
     except TimeoutException:
         print("Loading took too much time!")
 
+    # Wait for feed-items to appear
     try:
-        WebDriverWait(driver, delay).until(
+        WebDriverWait(driver, 10).until(
             EC.presence_of_element_located(
                 (By.CLASS_NAME, "listing-cover-photo"))
         )
@@ -56,6 +57,7 @@ def extract_post_information():
     item_names = []
     item_sizes = []
     current_prices = []
+    old_prices = []
     dates = []
     is_staff_pick = []
 
@@ -65,10 +67,11 @@ def extract_post_information():
         if len(item) == 3:
             slashed_price = item[1]
             old_price = item[2]
-            current_prices.append(slashed_price)
+            current_price = slashed_price
         else:
             regular_price = item[1]
-            current_prices.append(regular_price)
+            old_price = 'n/a'
+            current_price = regular_price
 
         item = item[0].split('\n')
 
@@ -90,15 +93,31 @@ def extract_post_information():
         item_sizes.append(item_size)
         dates.append(date)
         is_staff_pick.append(staff_pick)
+        old_prices.append(old_price)
+        current_prices.append(current_price)
 
         print(
-            f'brand: {item_brand}, name: {item_name}, size: {item_size}, date: {date}, staff pick?: {staff_pick}')
+            f'brand: {item_brand}, name: {item_name}, size: {item_size}, date: {date}, staff pick?: {staff_pick}, current price: {current_price}, old price: {old_price}')
+
+
+def extract_image_url():
+    image_urls = []
+
+    listings = driver.find_elements_by_class_name("feed-item")
+    listings.reverse()
+    for listing in listings:
+        if len(listing.find_elements_by_class_name("lazyload-placeholder")) == 0:
+            image_url = listing.find_element_by_tag_name(
+                "img").get_attribute("src")
+            image_urls.append(image_url)
 
 
 load_grailed_url()
-time.sleep(20)
 scroll_to_end()
-extract_post_information()
+time.sleep(10)
+scroll_to_end()
 
+extract_post_information()
+extract_image_url()
 
 driver.close()

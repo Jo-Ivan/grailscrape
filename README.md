@@ -5,4 +5,7 @@ A program that scrapes data from Grailed and exports it to a csv file for easy v
 
 ### Add
 - [x] scrolling to end of page 
-- [] automatic searching
+- [ ] extract image links 
+- [ ] close create account modal when it pops up
+- [ ] automatic searching
+- [ ] export csv
