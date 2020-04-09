@@ -3,6 +3,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 
 import pandas as pd
@@ -28,9 +29,9 @@ def load_grailed_url():
     input_box.send_keys(search_term)
     input_box.send_keys(Keys.RETURN)
 
-    # Error if search bar not found after 10 seconds
+    # Wait for search bar to appear
     try:
-        element = WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "shop"))
         )
     except TimeoutException:
@@ -38,16 +39,18 @@ def load_grailed_url():
 
     # Wait for feed-items to appear
     try:
-        element = WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 10).until(
             EC.presence_of_element_located(
                 (By.CLASS_NAME, "listing-cover-photo"))
         )
     except TimeoutException:
         print("No listings showed up after 10 seconds!")
 
+
+def close_modal():
     # Wait for modal to pop out
     try:
-        element = WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 10).until(
             EC.presence_of_element_located(
                 (By.CLASS_NAME, "-content"))
         )
@@ -55,22 +58,24 @@ def load_grailed_url():
         print("Modal wasn't shown")
 
     try:
-        element = WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 10).until(
             EC.presence_of_element_located(
                 (By.CLASS_NAME, "-title"))
         )
     except TimeoutException:
         print("Modal wasn't shown")
 
-
-def close_modal():
     webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 
 
 def check_listing_count():
     listing_count = driver.find_element_by_xpath(
         "//*[@id='shop']/div/div/div[1]/div[1]/div")
-    print(f'Scraping {listing_count.text} please wait 🐶')
+
+    if not listing_count.text:
+        print('Scraping please wait 🐶')
+    else:
+        print(f'Scraping {listing_count.text} please wait 🐶')
 
 
 def scroll_to_end():
@@ -163,18 +168,22 @@ def extract_post_information():
 
 
 start = pd.Timestamp.now()
+
 print(f'You searched for {search_term}')
 
 load_grailed_url()
 time.sleep(10)
 close_modal()
-
+time.sleep(3)
 check_listing_count()
 
 print('Currently scrolling to end of page.')
 
+# Scrolling fail-safes
 scroll_to_end()
-time.sleep(5)
+time.sleep(6)
+scroll_to_end()
+time.sleep(3)
 scroll_to_end()
 
 print('Extracting data, could take a while...')
