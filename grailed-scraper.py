@@ -79,16 +79,12 @@ def extract_post_information():
     item_sizes = []
     current_prices = []
     old_prices = []
-    # dates = []
     created_at_dates = []
     last_bumped_dates = []
     is_staff_pick = []
     is_by_grailed = []
 
-    count = 0
-
     for post in all_posts:
-        count += 1
         item = post.text.split('$')
 
         if len(item) == 3:
@@ -137,7 +133,6 @@ def extract_post_information():
         item_brands.append(item_brand)
         item_names.append(item_name)
         item_sizes.append(item_size)
-        # dates.append(date)
         last_bumped_dates.append(last_bumped)
         created_at_dates.append(created_at)
         is_staff_pick.append(staff_pick)
@@ -169,20 +164,26 @@ def extract_post_information():
 
 
 start = pd.Timestamp.now()
+print(f'You searched for {search_term}')
+
 load_grailed_url()
 time.sleep(7)
+scroll_to_end()
 
 listing_count = driver.find_element_by_xpath(
     "//*[@id='shop']/div/div/div[1]/div[1]/div")
 
 print(f'Scraping {listing_count.text} please wait 🐶')
+print('...')
 
-scroll_to_end()
 close_modal()
-time.sleep(7)
+time.sleep(5)
 scroll_to_end()
 
+print('Extracting data.')
 extract_post_information()
+
+print(f'All done! ⚡️')
 
 print(pd.Timestamp.now()-start)
 # extract_image_url()
