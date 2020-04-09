@@ -29,7 +29,7 @@ def load_grailed_url():
 
     # Error if search bar not found after 10 seconds
     try:
-        WebDriverWait(driver, 10).until(
+        element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "shop"))
         )
     except TimeoutException:
@@ -37,38 +37,52 @@ def load_grailed_url():
 
     # Wait for feed-items to appear
     try:
-        WebDriverWait(driver, 10).until(
+        element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located(
                 (By.CLASS_NAME, "listing-cover-photo"))
         )
     except TimeoutException:
         print("No listings showed up after 10 seconds!")
 
+    # Wait for modal to pop out
+    try:
+        element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.CLASS_NAME, "-content"))
+        )
+    except TimeoutException:
+        print("Modal wasn't shown")
+
+    try:
+        element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.CLASS_NAME, "-title"))
+        )
+    except TimeoutException:
+        print("Modal wasn't shown")
+
 
 def close_modal():
-    driver.implicitly_wait(5)
     webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 
 
+def check_listing_count():
+    listing_count = driver.find_element_by_xpath(
+        "//*[@id='shop']/div/div/div[1]/div[1]/div")
+    print(f'Scraping {listing_count.text} please wait 🐶')
+
+
 def scroll_to_end():
-    SCROLL_PAUSE_TIME = 10.0
-
-    # Get scroll height
-    last_height = driver.execute_script("return document.body.scrollHeight")
-
-    while True:
-        # Scroll down to bottom
-        driver.execute_script(
-            "window.scrollTo(0, document.body.scrollHeight);")
-
-        # Wait to load page
-        time.sleep(SCROLL_PAUSE_TIME)
-
-        # Calculate new scroll height and compare with last scroll height
-        new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height:
-            break
-        last_height = new_height
+    lenOfPage = driver.execute_script(
+        "window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+    match = False
+    while(match == False):
+        lastCount = lenOfPage
+        time.sleep(3)
+        lenOfPage = driver.execute_script(
+            "window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+        if lastCount == lenOfPage:
+            match = True
 
 
 def extract_post_information():
@@ -161,31 +175,28 @@ def extract_post_information():
 #             image_url = listing.find_element_by_tag_name(
 #                 "img").get_attribute("src")
 #             image_urls.append(image_url)
+#             count += 1
+#     print(count)
 
 
 start = pd.Timestamp.now()
 print(f'You searched for {search_term}')
 
 load_grailed_url()
-time.sleep(7)
-scroll_to_end()
-
-listing_count = driver.find_element_by_xpath(
-    "//*[@id='shop']/div/div/div[1]/div[1]/div")
-
-print(f'Scraping {listing_count.text} please wait 🐶')
-print('...')
-
+time.sleep(10)
 close_modal()
-time.sleep(5)
+
+check_listing_count()
+
+print('Currently scrolling to end of page.')
+
 scroll_to_end()
 
-print('Extracting data.')
+print('Extracting data, could take a while...')
 extract_post_information()
 
 print(f'All done! ⚡️')
 
 print(pd.Timestamp.now()-start)
-# extract_image_url()
 
 driver.close()
