@@ -9,4 +9,4 @@ A program that scrapes data from Grailed and exports it to a csv file for easy v
 - [x] export csv
 - [x] fix dates (seperate last bumped and listing created)
 - [x] close create account modal when it pops up
-- [x] fix bug with scrolling to end of page
+- [x] fix bug when scrolling to end of page
