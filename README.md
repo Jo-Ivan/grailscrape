@@ -2,7 +2,9 @@
 
 ## Before using
 This project is solely for analyzing data and not for commercial use.
+
 **Data scraping is against** [**Grailed's Terms of Service**](https://www.grailed.com/about/terms).
+
 Please use at your own discretion.
 
 ## Running locally
