@@ -154,9 +154,6 @@ def extract_post_information():
         old_prices.append(old_price)
         current_prices.append(current_price)
 
-        # print(
-        #     f'brand: {item_brand}, name: {item_name}, size: {item_size}, date: {date}, staff pick?: {staff_pick}, current price: {current_price}, old price: {old_price}')
-
     listing = {'brand': item_brands, 'name': item_names, 'size': item_sizes, 'created_at': created_at_dates, 'last_bumped_date': last_bumped_dates,
                'old price': old_prices, 'current price': current_prices, 'by grailed': is_by_grailed, 'staff pick': is_staff_pick}
     df = pd.DataFrame(listing)
@@ -191,11 +188,14 @@ check_listing_count()
 print('Currently scrolling to end of page.')
 
 scroll_to_end()
+time.sleep(5)
+scroll_to_end()
 
 print('Extracting data, could take a while...')
+
 extract_post_information()
 
-print(f'All done! ⚡️')
+print('All done! ⚡️')
 
 print(pd.Timestamp.now()-start)
 

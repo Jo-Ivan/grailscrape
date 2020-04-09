@@ -1,4 +1,4 @@
-# Grailed Scraper
+# grailscrape
 
 ### About
 A program that scrapes data from Grailed and exports it to a csv file for easy viewing.
