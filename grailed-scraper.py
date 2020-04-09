@@ -19,16 +19,14 @@ args = parser.parse_args()
 
 search_term = args.search
 
-# driver.find/html/body/div[10]/div/div/a/svg
-
 
 def load_grailed_url():
-
     driver.get(url)
 
     input_box = driver.find_element_by_id("globalheader_search")
     input_box.send_keys(search_term)
     input_box.send_keys(Keys.RETURN)
+
     # Error if search bar not found after 10 seconds
     try:
         WebDriverWait(driver, 10).until(
@@ -38,13 +36,18 @@ def load_grailed_url():
         print("Loading took too much time!")
 
     # Wait for feed-items to appear
-    # try:
-    #     WebDriverWait(driver, 10).until(
-    #         EC.presence_of_element_located(
-    #             (By.CLASS_NAME, "listing-cover-photo"))
-    #     )
-    # except TimeoutException:
-    #     print("No listings showed up after 10 seconds!")
+    try:
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.CLASS_NAME, "listing-cover-photo"))
+        )
+    except TimeoutException:
+        print("No listings showed up after 10 seconds!")
+
+
+def close_modal():
+    driver.implicitly_wait(5)
+    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 
 
 def scroll_to_end():
@@ -76,10 +79,16 @@ def extract_post_information():
     item_sizes = []
     current_prices = []
     old_prices = []
-    dates = []
+    # dates = []
+    created_at_dates = []
+    last_bumped_dates = []
     is_staff_pick = []
+    is_by_grailed = []
+
+    count = 0
 
     for post in all_posts:
+        count += 1
         item = post.text.split('$')
 
         if len(item) == 3:
@@ -99,26 +108,48 @@ def extract_post_information():
             item_size = item[3]
             date = item[1]
             staff_pick = True
+            by_grailed = False
+        elif item[0] == 'By Grailed':
+            item_brand = item[2]
+            item_name = item[4]
+            item_size = item[3]
+            date = item[1]
+            staff_pick = False
+            by_grailed = True
         else:
             item_brand = item[1]
             item_name = item[3]
             item_size = item[2]
             date = item[0]
             staff_pick = False
+            by_grailed = False
+
+        dates = date.split('(')
+
+        if len(dates) == 2:
+            last_bumped = dates[0]
+            created_at = dates[1]
+            created_at = created_at[:-1]
+        else:
+            last_bumped = 'n/a'
+            created_at = dates[0]
 
         item_brands.append(item_brand)
         item_names.append(item_name)
         item_sizes.append(item_size)
-        dates.append(date)
+        # dates.append(date)
+        last_bumped_dates.append(last_bumped)
+        created_at_dates.append(created_at)
         is_staff_pick.append(staff_pick)
+        is_by_grailed.append(by_grailed)
         old_prices.append(old_price)
         current_prices.append(current_price)
 
-        print(
-            f'brand: {item_brand}, name: {item_name}, size: {item_size}, date: {date}, staff pick?: {staff_pick}, current price: {current_price}, old price: {old_price}')
+        # print(
+        #     f'brand: {item_brand}, name: {item_name}, size: {item_size}, date: {date}, staff pick?: {staff_pick}, current price: {current_price}, old price: {old_price}')
 
-    listing = {'brand': item_brands, 'name': item_names, 'size': item_sizes, 'date': dates,
-               'staff pick': is_staff_pick, 'old price': old_prices, 'current price': current_prices}
+    listing = {'brand': item_brands, 'name': item_names, 'size': item_sizes, 'created_at': created_at_dates, 'last_bumped_date': last_bumped_dates,
+               'old price': old_prices, 'current price': current_prices, 'by grailed': is_by_grailed, 'staff pick': is_staff_pick}
     df = pd.DataFrame(listing)
 
     df.to_csv('listings.csv')
@@ -137,13 +168,23 @@ def extract_post_information():
 #             image_urls.append(image_url)
 
 
+start = pd.Timestamp.now()
 load_grailed_url()
-time.sleep(5)
+time.sleep(7)
+
+listing_count = driver.find_element_by_xpath(
+    "//*[@id='shop']/div/div/div[1]/div[1]/div")
+
+print(f'Scraping {listing_count.text} please wait 🐶')
+
 scroll_to_end()
-time.sleep(10)
+close_modal()
+time.sleep(7)
 scroll_to_end()
 
 extract_post_information()
+
+print(pd.Timestamp.now()-start)
 # extract_image_url()
 
-# driver.close()
+driver.close()
