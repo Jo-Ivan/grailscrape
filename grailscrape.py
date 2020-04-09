@@ -9,12 +9,13 @@ import pandas as pd
 import argparse
 import time
 
-
 url = 'https://www.grailed.com/'
+
+# Change PATH depending on where you have ChromeDriver installed
 driver = webdriver.Chrome('./chromedriver')
 
 parser = argparse.ArgumentParser()
-parser.add_argument("search", help="Query to find listings on Grailed.com")
+parser.add_argument("search", help="enter search argument")
 args = parser.parse_args()
 
 search_term = args.search
@@ -159,21 +160,6 @@ def extract_post_information():
     df = pd.DataFrame(listing)
 
     df.to_csv('listings.csv')
-
-
-# def extract_image_url():
-#     image_urls = []
-#     count = 0
-
-#     listings = driver.find_elements_by_class_name("feed-item")
-#     listings.reverse()
-#     for listing in listings:
-#         if len(listing.find_elements_by_class_name("lazyload-placeholder")) == 0:
-#             image_url = listing.find_element_by_tag_name(
-#                 "img").get_attribute("src")
-#             image_urls.append(image_url)
-#             count += 1
-#     print(count)
 
 
 start = pd.Timestamp.now()
