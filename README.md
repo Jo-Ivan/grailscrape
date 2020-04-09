@@ -1,8 +1,5 @@
 # Grailed Scraper
 
-### About
-A program that scrapes data from Grailed and exports it to a csv file for easy viewing.
-
 ### Add
 - [ ] extract image links 
 - [x] automatic searching
