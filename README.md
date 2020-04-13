@@ -31,6 +31,7 @@ Don't minimize browser window when program is running.
 - [ ] extract image links 
 - [ ] data analysis
 - [ ] find a way to remove fail-safes
+- [ ] refactor
 - [x] automatic searching
 - [x] export csv
 - [x] fix dates (seperate last bumped and listing created)

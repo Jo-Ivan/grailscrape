@@ -91,6 +91,18 @@ def scroll_to_end():
             match = True
 
 
+def extract_href_link():
+    href_links = []
+    all_posts = driver.find_elements_by_class_name(
+        'feed-item')
+
+    for link in all_posts:
+        hrefs = link.find_elements_by_tag_name('a')
+        for href in hrefs:
+            href_links.append(href.get_attribute("href"))
+    return href_links
+
+
 def extract_post_information():
     all_posts = driver.find_elements_by_class_name('feed-item')
 
@@ -103,6 +115,9 @@ def extract_post_information():
     last_bumped_dates = []
     is_staff_pick = []
     is_by_grailed = []
+
+    # Extracts all href links
+    href_links = extract_href_link()
 
     for post in all_posts:
         item = post.text.split('$')
@@ -161,7 +176,7 @@ def extract_post_information():
         current_prices.append(current_price)
 
     listing = {'brand': item_brands, 'name': item_names, 'size': item_sizes, 'created_at': created_at_dates, 'last_bumped_date': last_bumped_dates,
-               'old price': old_prices, 'current price': current_prices, 'by grailed': is_by_grailed, 'staff pick': is_staff_pick}
+               'old price': old_prices, 'current price': current_prices, 'by grailed': is_by_grailed, 'staff pick': is_staff_pick, 'link': href_links}
     df = pd.DataFrame(listing)
 
     df.to_csv('listings.csv')
