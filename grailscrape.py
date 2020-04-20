@@ -162,7 +162,7 @@ def extract_post_information():
             new_price = item[6]
             current_price = new_price
 
-        if item[0] == 'By Grailed' and len(item) == 6:
+        if item[0] == 'Staff Pick' and len(item) == 6:
             by_grailed = False
             staff_pick = True
             date = item[1]
