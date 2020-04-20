@@ -73,9 +73,9 @@ def check_listing_count():
         "//*[@id='shop']/div/div/div[1]/div[1]/div")
 
     if not listing_count.text:
-        print('Scraping please wait 🐶')
+        print('Scraping please wait. 🐶')
     else:
-        print(f'Scraping {listing_count.text} please wait 🐶')
+        print(f'Scraping {listing_count.text} please wait. 🐶')
 
 
 def scroll_to_end():
@@ -91,7 +91,7 @@ def scroll_to_end():
             match = True
 
 
-def extract_href_link():
+def extract_href_links():
     href_links = []
     all_posts = driver.find_elements_by_class_name(
         'feed-item')
@@ -101,6 +101,19 @@ def extract_href_link():
         for href in hrefs:
             href_links.append(href.get_attribute("href"))
     return href_links
+
+
+# Todo: fix
+def extract_image_links():
+    image_links = []
+    all_posts = driver.find_elements_by_class_name(
+        'feed-item')
+
+    for link in all_posts:
+        hrefs = link.find_elements_by_tag_name('img')
+        for href in hrefs:
+            image_links.append(href.get_attribute("src"))
+    return image_links
 
 
 def extract_post_information():
@@ -117,43 +130,81 @@ def extract_post_information():
     is_by_grailed = []
 
     # Extracts all href links
-    href_links = extract_href_link()
+    href_links = extract_href_links()
+
+    # Extracts all image links
+    # image_links = extract_image_links()
 
     for post in all_posts:
-        item = post.text.split('$')
 
-        if len(item) == 3:
-            new_price = item[1]
-            old_price = item[2]
-            current_price = new_price
-        else:
-            regular_price = item[1]
+        item = post.text.split('\n')
+
+        # Todo: refactor
+        if item[0] == 'By Grailed' and len(item) == 6:
+            by_grailed = True
+            staff_pick = False
+            date = item[1]
+            item_brand = item[2]
+            item_size = item[3]
+            item_name = item[4]
             old_price = 'n/a'
+            new_price = item[5]
+            current_price = new_price
+
+        if item[0] == 'By Grailed' and len(item) == 7:
+            by_grailed = True
+            staff_pick = False
+            date = item[1]
+            item_brand = item[2]
+            item_size = item[3]
+            item_name = item[4]
+            old_price = item[5]
+            new_price = item[6]
+            current_price = new_price
+
+        if item[0] == 'By Grailed' and len(item) == 6:
+            by_grailed = False
+            staff_pick = True
+            date = item[1]
+            item_brand = item[2]
+            item_size = item[3]
+            item_name = item[4]
+            old_price = 'n/a'
+            new_price = item[5]
+            current_price = new_price
+
+        if item[0] == 'Staff Pick' and len(item) == 7:
+            by_grailed = False
+            staff_pick = True
+            date = item[1]
+            item_brand = item[2]
+            item_size = item[3]
+            item_name = item[4]
+            old_price = item[5]
+            new_price = item[6]
+            current_price = new_price
+
+        if len(item) == 5:
+            by_grailed = False
+            staff_pick = False
+            date = item[0]
+            item_brand = item[1]
+            item_size = item[2]
+            item_name = item[3]
+            old_price = 'n/a'
+            regular_price = item[4]
             current_price = regular_price
 
-        item = item[0].split('\n')
-
-        if item[0] == 'Staff Pick':
-            item_brand = item[2]
-            item_name = item[4]
-            item_size = item[3]
-            date = item[1]
-            staff_pick = True
+        if len(item) == 6:
             by_grailed = False
-        elif item[0] == 'By Grailed':
-            item_brand = item[2]
-            item_name = item[4]
-            item_size = item[3]
-            date = item[1]
             staff_pick = False
-            by_grailed = True
-        else:
-            item_brand = item[1]
-            item_name = item[3]
-            item_size = item[2]
             date = item[0]
-            staff_pick = False
-            by_grailed = False
+            item_brand = item[1]
+            item_size = item[2]
+            item_name = item[3]
+            old_price = item[4]
+            new_price = item[5]
+            current_price = new_price
 
         dates = date.split('(')
 
@@ -175,9 +226,20 @@ def extract_post_information():
         old_prices.append(old_price)
         current_prices.append(current_price)
 
-    listing = {'brand': item_brands, 'name': item_names, 'size': item_sizes, 'created_at': created_at_dates, 'last_bumped_date': last_bumped_dates,
-               'old price': old_prices, 'current price': current_prices, 'by grailed': is_by_grailed, 'staff pick': is_staff_pick, 'link': href_links}
-    df = pd.DataFrame(listing)
+    item_brands = item_brands[:-3]
+    item_names = item_names[:-3]
+    item_sizes = item_sizes[:-3]
+    last_bumped_dates = last_bumped_dates[:-3]
+    created_at_dates = created_at_dates[:-3]
+    is_staff_pick = is_staff_pick[:-3]
+    is_by_grailed = is_by_grailed[:-3]
+    old_prices = old_prices[:-3]
+    current_prices = current_prices[:-3]
+
+    listings = {'brand': item_brands, 'name': item_names, 'size': item_sizes, 'created_at': created_at_dates, 'last_bumped': last_bumped_dates,
+                'old price': old_prices, 'current price': current_prices, 'by grailed': is_by_grailed, 'staff pick': is_staff_pick, 'listing link': href_links}
+
+    df = pd.DataFrame(listings)
 
     df.to_csv('listings.csv')
 
@@ -205,7 +267,7 @@ print('Extracting data, could take a while...')
 
 extract_post_information()
 
-print('All done! ⚡️')
+print('All done! ✨')
 
 print(pd.Timestamp.now()-start)
 
